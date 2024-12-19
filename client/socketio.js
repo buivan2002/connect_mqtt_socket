@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client'; // Import socket.io-client
 
-const SOCKET_URL = 'http://192.168.100.70:3000'; // Địa chỉ URL của server Socket.IO
+const SOCKET_URL = 'http://192.168.30.103:3000'; // Địa chỉ URL của server Socket.IO
 
 class WSService {
     constructor() {

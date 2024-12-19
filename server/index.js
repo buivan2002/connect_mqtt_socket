@@ -17,22 +17,46 @@ const io = socketIO(server);
 client.on('connect', () => {
     console.log('Connected to HiveMQ broker');
     
-    // Đăng ký vào chủ đề (topic)
-    client.subscribe('test/topic', (err) => {
-        if (!err) {
-            console.log('Subscribed to topic: test/topic');
+    client.subscribe({
+        'sensor/nhietdo': { qos: 0 },
+        'sensor/doam': { qos: 0 },
+        'sensor/lm393': { qos: 0 }
+    }, (err, granted) => {
+        if (err) {
+            console.error('Failed to subscribe to topics:', err);
+        } else {
+            console.log('Subscribed to topics:', granted.map(g => g.topic));
         }
     });
+    
+    
 });
 
-// Khi nhận được tin nhắn từ MQTT broker
 client.on('message', (topic, message) => {
     const msg = message.toString();
-    console.log(`Received message on topic ${topic}: ${msg}`);
     
-    // Gửi tin nhắn từ MQTT tới tất cả các client qua Socket.IO
-    io.emit('mqtt_message', { topic, message: msg });
+    switch (topic) {
+        case 'sensor/nhietdo':
+            console.log(`Temperature: ${msg} °C`);
+            io.emit('mqtt_message_nhiet', { topic, message: msg });
+
+            break;
+        case 'sensor/doam':
+            console.log(`Humidity: ${msg} %`);
+             io.emit('mqtt_message_doam', { topic, message: msg });
+
+            break;
+        case 'sensor/lm393':
+            console.log(`LM393 value: ${msg}`);
+            io.emit('mqtt_message_as', { topic, message: msg });
+
+            break;
+        default:
+            console.warn(`Unhandled topic: ${topic}`);
+    }
 });
+
+    
 
 // Xử lý kết nối từ client React Native qua Socket.IO
 io.on('connect', (socket) => {
